@@ -4,8 +4,27 @@ const getState = ({ getStore, getActions, setStore }) => {
 			vehicles: [],
 			next: "https://www.swapi.tech/api/vehicles/",
 			favourites: [],
+			login: {User: "User", id:"40"},
+			userData: {
+				email: "",
+				user: "",
+				password: "",
+			  }
 		},
 		actions: {
+			setUserMail: (newData) =>{
+				setStore({userData:{...getStore().userData, email:newData}});
+			},
+			setUserUser: (newData) =>{
+				setStore({userData:{...getStore().userData, user:newData}});
+			},
+			setUserPassword: (newData) =>{
+				setStore({userData:{...getStore().userData, password:newData}});
+			},
+			setLogin: (user) =>{
+				setStore({login:user});
+				getActions().getAllFavourites();
+			},
 			getVehicles: async() => {
 				const store = getStore();
 				const response = await fetch(store.next);
@@ -21,18 +40,30 @@ const getState = ({ getStore, getActions, setStore }) => {
 			//	setStore({vehicles:[...getStore().vehicles,vehiclesfullAPI]});
 				console.log(getStore().vehicles);
 			},
-			updateFavourites: (e)=>{
-				const favourites = getStore().favourites;
-				if (!favourites.includes(e)) {
-				  setStore({ favourites: [...getStore().favourites, e] })
-				  true;
-				} else {
-				  setStore({ favourites: favourites.filter((elem) => elem !== e) })
-				  false;
-				}
-			}
-			}
-		}
-	};
+			updateFavourites: async (e) =>{
+				const response = await fetch("https://3000-4geeksacade-flaskresthe-ykzyeg9yxkh.ws-eu43.gitpod.io/user/"+getStore().login.id+"/favorite/vehicle/"+e,
+					{
+					  method: "POST",
+					  body: JSON.stringify("hola"),
+					  headers: {
+						  "access-control-allow-origin":	"*",
+						  "Content-Type": "application/json"
+					  }
+					}
+				  );
+				  const confirmation = await response.json();
+				  console.log(confirmation.Respuesta);
+				
+				getActions().getAllFavourites();
+			},
+			getAllFavourites: async () => {
+				const response = await fetch("https://3000-4geeksacade-flaskresthe-ykzyeg9yxkh.ws-eu43.gitpod.io/user/"+getStore().login.id+"/favorites")
+				const favorites = await response.json();
+				console.log(favorites);
+				setStore({favourites: favorites});
+			}//ultimaAction
+			}//actions
+		}//return
+	};//getState
 
 export default getState;
