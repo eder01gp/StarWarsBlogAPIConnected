@@ -25,21 +25,42 @@ const getState = ({ getStore, getActions, setStore }) => {
 				setStore({login:user});
 				getActions().getAllFavourites();
 			},
-			getVehicles: async() => {
-				const store = getStore();
-				const response = await fetch(store.next);
-				const vehiclesAPI = await response.json();
-				let vehiclesfullAPI = [];
-				setStore({next:vehiclesAPI.next});
-				
-				for (let j=0; j<vehiclesAPI.results.length; j++){
-					const  response = await fetch("https://www.swapi.tech/api/vehicles/"+vehiclesAPI.results[j].uid);
-					const vehicleAPI = await response.json();
-					setStore({vehicles:[...getStore().vehicles,vehicleAPI.result]});
+			getLocalVehicles: async () => {
+				const vehiclesLocal = JSON.parse(localStorage.getItem("vehicles"));
+				if (vehiclesLocal) {
+				  setStore({ vehicles: vehiclesLocal });
+				} else {
+				  getActions().getVehicles();
 				}
-			//	setStore({vehicles:[...getStore().vehicles,vehiclesfullAPI]});
-				console.log(getStore().vehicles);
-			},
+			  },
+			  getVehicles: async () => {
+				const store = getStore();
+				const nextLocal = JSON.parse(localStorage.getItem("next"));
+				if (nextLocal) {
+					setStore({ next: nextLocal });
+				  }
+		
+				  const response = await fetch(store.next);
+				  const vehiclesAPI = await response.json();
+		
+				  for (let j = 0; j < vehiclesAPI.results.length; j++) {
+					const response = await fetch(
+					  "https://www.swapi.tech/api/vehicles/" +
+						vehiclesAPI.results[j].uid
+					);
+					const vehicleAPI = await response.json();
+					let findID = store.vehicles.find(
+					  (e) => e.uid == vehicleAPI.result.uid
+					);
+					if (findID) {
+					} else {
+					  setStore({ vehicles: [...store.vehicles, vehicleAPI.result] });
+					  localStorage.setItem("vehicles", JSON.stringify(store.vehicles));
+					}
+				  }
+				  setStore({ next: vehiclesAPI.next });
+				  localStorage.setItem("next", JSON.stringify(vehiclesAPI.next));
+			  },
 			updateFavourites: async (e) =>{
 				const response = await fetch("https://3000-4geeksacade-flaskresthe-ykzyeg9yxkh.ws-eu43.gitpod.io/user/"+getStore().login.id+"/favorite/vehicle/"+e,
 					{
