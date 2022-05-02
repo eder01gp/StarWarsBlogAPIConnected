@@ -8,7 +8,7 @@ export const Vehicles = () => {
   const [sendRequest, setSendRequest] = useState(false);
 
   useEffect(() => {
-    actions.getVehicles();
+    actions.getLocalVehicles();
   }, []);
 
   useEffect(() => {
